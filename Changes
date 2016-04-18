@@ -1,0 +1,6 @@
+Revision history for Perl extension App::Environ.
+
+0.01  Fri Apr 15 18:11:57 2016
+	- original version; created by h2xs 1.23 with options
+		-AXO --skip-exporter --skip-autoloader -b 5.8.0 -n App::Environ
+
