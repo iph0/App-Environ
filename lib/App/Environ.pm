@@ -127,22 +127,17 @@ __END__
 App::Environ - Simple environ for building complex applications
 
 =head1 SYNOPSIS
-  use App::Environ;
-
-  App::Environ->register( $module_class,
-    'initialize' => sub { ... },
-    'finalize'   => sub { ... },
-  );
-
   use App::Environ
     initialize => 0,
     finalize   => 1;
 
   App::Environ->push_event( 'initialize', qw( foo bar ) );
 
-  App::Environ->push_event( 'finalize' );
+  App::Environ->push_event('finalize');
 
 =head1 DESCRIPTION
+
+In development. See examples.
 
 =head1 AUTHOR
 

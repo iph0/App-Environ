@@ -5,9 +5,10 @@ use warnings;
 
 use App::Environ;
 use App::Environ::Config;
-
 use AnyEvent;
 use Data::Dumper;
+
+App::Environ::Config->register( qw( dog.yml ) );
 
 App::Environ->register( __PACKAGE__,
   initialize => sub {
@@ -39,7 +40,5 @@ App::Environ->register( __PACKAGE__,
     }
   },
 );
-
-App::Environ::Config->register_config( qw( dog.yml ) );
 
 1;

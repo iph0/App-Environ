@@ -13,6 +13,7 @@ use Carp qw( croak );
 my @REGISTERED_CONFIG_SECTIONS;
 my %CONFIG_SECTIONS_IDX;
 my $CONFIG;
+my $RESOURCES_UPDATED = 0;
 
 App::Environ->register( __PACKAGE__,
   initialize => sub {
@@ -21,7 +22,7 @@ App::Environ->register( __PACKAGE__,
       $cb = pop;
     }
 
-    unless ( defined $CONFIG ) {
+    if ($RESOURCES_UPDATED) {
       my @config_dirs;
       if ( defined $ENV{APPCONF_DIRS} ) {
         @config_dirs = split /:/, $ENV{APPCONF_DIRS};
@@ -57,7 +58,7 @@ App::Environ->register( __PACKAGE__,
 );
 
 
-sub register_config {
+sub register {
   my $self_class      = shift;
   my @config_sections = @_;
 
@@ -67,6 +68,8 @@ sub register_config {
     $CONFIG_SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_CONFIG_SECTIONS, $config_section );
   }
+
+  $RESOURCES_UPDATED = 1;
 
   return;
 }

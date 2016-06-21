@@ -8,6 +8,8 @@ use App::Environ::Config;
 use AnyEvent;
 use Data::Dumper;
 
+App::Environ::Config->register( qw( cow.yml ) );
+
 App::Environ->register( __PACKAGE__,
   initialize => sub {
     my $cb;
@@ -38,7 +40,5 @@ App::Environ->register( __PACKAGE__,
     }
   },
 );
-
-App::Environ::Config->register_config( qw( cow.yml ) );
 
 1;
