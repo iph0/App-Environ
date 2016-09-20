@@ -28,5 +28,5 @@ App::Environ->push_event( 'reload', sub { $cv->send } );
 $cv->recv;
 
 $cv = AE::cv;
-App::Environ->push_event( 'finalize-r', sub { $cv->send } );
+App::Environ->push_event( 'finalize:r', sub { $cv->send } );
 $cv->recv;

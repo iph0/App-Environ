@@ -20,7 +20,7 @@ my $NEED_INIT = 0;
 App::Environ->register( __PACKAGE__,
   initialize   => sub { __PACKAGE__->_initialize(@_) },
   reload       => sub { __PACKAGE__->_reload(@_) },
-  'finalize-r' => sub { __PACKAGE__->_finalize(@_) },
+  'finalize:r' => sub { __PACKAGE__->_finalize(@_) },
 );
 
 

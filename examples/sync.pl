@@ -21,4 +21,4 @@ App::Environ->push_event( 'initialize', qw( foo bar ) );
 
 App::Environ->push_event('reload');
 
-App::Environ->push_event('finalize-r');
+App::Environ->push_event('finalize:r');

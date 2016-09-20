@@ -35,7 +35,7 @@ sub register {
     unless ( exists $REGISTERED_EVENTS{$event_name} ) {
       $REGISTERED_EVENTS{$event_name} = [];
     }
-    if ( $event_name =~ m/\-r$/ ) {
+    if ( $event_name =~ m/\:r$/ ) {
       unshift( @{ $REGISTERED_EVENTS{$event_name} }, $handler );
     }
     else {
@@ -104,7 +104,7 @@ App::Environ - Simple environ for building complex applications
 
   App::Environ->push_event( 'initialize', qw( foo bar ) );
 
-  App::Environ->push_event('finalize-r');
+  App::Environ->push_event('finalize:r');
 
 =head1 DESCRIPTION
 
