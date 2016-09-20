@@ -8,22 +8,9 @@ our $VERSION = '0.01_01';
 
 use Carp qw( croak );
 
-my %HANDLE_EVENTS;
-my %REGISTERED_MODULES;
-my %MODULE_SERIAL_NUM;
+my %REGISTERED_EVENTS;
+my %MODULES_IDX;
 
-my $REGISTER_COUNTER = 0;
-
-sub import {
-  my $self_class = shift;
-  my %events     = @_;
-
-  while ( my ( $event_name, $handling_order ) = each %events ) {
-    $HANDLE_EVENTS{$event_name} = $handling_order;
-  }
-
-  return;
-}
 
 sub register {
   my $self_class   = shift;
@@ -34,25 +21,26 @@ sub register {
     croak 'Module class must be specified';
   }
 
-  return if $REGISTERED_MODULES{$module_class};
-
-  $MODULE_SERIAL_NUM{$module_class} = $REGISTER_COUNTER++;
-
-  unless ( defined $REGISTERED_MODULES{$module_class} ) {
-    $REGISTERED_MODULES{$module_class} = {};
+  unless ( exists $MODULES_IDX{$module_class} ) {
+    $MODULES_IDX{$module_class} = {};
   }
-
-  my $module_handlers = $REGISTERED_MODULES{$module_class};
+  my $events_idx = $MODULES_IDX{$module_class};
 
   while ( my ( $event_name, $handler ) = each %handlers ) {
-    next unless defined $HANDLE_EVENTS{$event_name};
-
-    unless ( ref( $handler ) eq 'CODE' ) {
-      croak "\"$event_name\" handler for \"$module_class\" must be sepcified"
-          . " as a code reference";
+    if ( exists $events_idx->{$event_name} ) {
+      croak qq{"$event_name" handler for "$module_class" already registered};
     }
+    $events_idx->{$event_name} = 1;
 
-    $module_handlers->{$event_name} = $handler;
+    unless ( exists $REGISTERED_EVENTS{$event_name} ) {
+      $REGISTERED_EVENTS{$event_name} = [];
+    }
+    if ( $event_name =~ m/\-r$/ ) {
+      unshift( @{ $REGISTERED_EVENTS{$event_name} }, $handler );
+    }
+    else {
+      push( @{ $REGISTERED_EVENTS{$event_name} }, $handler );
+    }
   }
 
   return;
@@ -65,26 +53,14 @@ sub push_event {
   unless ( defined $event_name ) {
     croak 'Event name must be specified';
   }
-  unless ( defined $HANDLE_EVENTS{$event_name} ) {
-    croak "Can't handle unknown event \"$event_name\"";
-  }
 
-  my @handlers = map {
-    defined $REGISTERED_MODULES{$_}{$event_name}
-        ? $REGISTERED_MODULES{$_}{$event_name}
-        : ()
-  }
-  sort { $MODULE_SERIAL_NUM{$a} <=> $MODULE_SERIAL_NUM{$b} }
-  keys %REGISTERED_MODULES;
+  return unless exists $REGISTERED_EVENTS{$event_name};
 
-  # Reverse calling order of handlers
-  if ( $HANDLE_EVENTS{$event_name} ) {
-    @handlers = reverse @handlers;
-  }
+  my @handlers = @{ $REGISTERED_EVENTS{$event_name} };
 
   if ( ref( $_[-1] ) eq 'CODE' ) {
     my $cb = pop @_;
-    $self_class->_async_call_handler( \@handlers, 0, [@_], $cb );
+    $self_class->_async_call_handler( \@handlers, [@_], $cb );
   }
   else {
     foreach my $handler (@handlers) {
@@ -96,24 +72,21 @@ sub push_event {
 }
 
 sub _async_call_handler {
-  my $self_class  = shift;
-  my $handlers    = shift;
-  my $handler_pos = shift;
-  my $args        = shift;
-  my $cb          = shift;
+  my $self_class = shift;
+  my $handlers   = shift;
+  my $args       = shift;
+  my $cb         = shift;
 
-  my $handler = $handlers->[$handler_pos];
+  my $handler = shift @{$handlers};
 
   unless ( defined $handler ) {
     $cb->();
-
     return;
   };
 
   $handler->( @{$args},
     sub {
-      $self_class->_async_call_handler( $handlers, ++$handler_pos, $args,
-          $cb );
+      $self_class->_async_call_handler( $handlers, $args, $cb );
     }
   );
 
@@ -127,13 +100,11 @@ __END__
 App::Environ - Simple environ for building complex applications
 
 =head1 SYNOPSIS
-  use App::Environ
-    initialize => 0,
-    finalize   => 1;
+  use App::Environ;
 
   App::Environ->push_event( 'initialize', qw( foo bar ) );
 
-  App::Environ->push_event('finalize');
+  App::Environ->push_event('finalize-r');
 
 =head1 DESCRIPTION
 

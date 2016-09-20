@@ -7,9 +7,7 @@ use warnings;
 use lib './examples/lib';
 
 use FindBin;
-use App::Environ
-  initialize => 0,
-  finalize   => 1;
+use App::Environ;
 
 BEGIN {
   $ENV{APPCONF_DIRS} = "$FindBin::Bin/etc";
@@ -21,6 +19,6 @@ use Cow;
 
 App::Environ->push_event( 'initialize', qw( foo bar ) );
 
-# Here doing something
+App::Environ->push_event('reload');
 
-App::Environ->push_event( 'finalize' );
+App::Environ->push_event('finalize-r');

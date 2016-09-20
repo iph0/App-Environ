@@ -11,34 +11,58 @@ use Data::Dumper;
 App::Environ::Config->register( qw( cow.yml ) );
 
 App::Environ->register( __PACKAGE__,
-  initialize => sub {
-    my $cb;
-    if ( ref( $_[-1] ) eq 'CODE' ) {
-      $cb = pop;
-    }
-
-    my $cow_config = App::Environ::Config->instance->{'cow'};
-
-    print Dumper( $cow_config );
-    print __PACKAGE__ . " initialized\n";
-
-    if ( defined $cb ) {
-      AE::postpone( sub { $cb->() } );
-    }
-  },
-
-  finalize => sub {
-    my $cb;
-    if ( ref( $_[-1] ) eq 'CODE' ) {
-      $cb = pop;
-    }
-
-    print __PACKAGE__ . " finalized\n";
-
-    if ( defined $cb ) {
-      AE::postpone( sub { $cb->() } );
-    }
-  },
+  initialize   => sub { __PACKAGE__->_initialize(@_) },
+  reload       => sub { __PACKAGE__->_reload(@_) },
+  'finalize-r' => sub { __PACKAGE__->_finalize(@_) },
 );
+
+sub _initialize {
+  my $cb;
+  if ( ref( $_[-1] ) eq 'CODE' ) {
+    $cb = pop;
+  }
+
+  my $cow_config = App::Environ::Config->instance->{'cow'};
+
+  print Dumper($cow_config);
+  print __PACKAGE__ . " initialized\n";
+
+  if ( defined $cb ) {
+    AE::postpone { $cb->() };
+  }
+
+  return;
+}
+
+sub _reload {
+  my $cb;
+  if ( ref( $_[-1] ) eq 'CODE' ) {
+    $cb = pop;
+  }
+
+  print __PACKAGE__ . " reloaded\n";
+
+  if ( defined $cb ) {
+    AE::postpone { $cb->() };
+  }
+
+  return;
+}
+
+
+sub _finalize {
+  my $cb;
+  if ( ref( $_[-1] ) eq 'CODE' ) {
+    $cb = pop;
+  }
+
+  print __PACKAGE__ . " finalized\n";
+
+  if ( defined $cb ) {
+    AE::postpone { $cb->() };
+  }
+
+  return;
+}
 
 1;

@@ -7,9 +7,7 @@ use warnings;
 use lib './examples/lib';
 
 use FindBin;
-use App::Environ
-  initialize => 0,
-  finalize   => 1;
+use App::Environ;
 
 BEGIN {
   $ENV{APPCONF_DIRS} = "$FindBin::Bin/etc";
@@ -21,24 +19,14 @@ use Cow;
 
 use AnyEvent;
 
-my $cv = AE::cv();
+my $cv = AE::cv;
+App::Environ->push_event( 'initialize', qw( foo bar ), sub { $cv->send } );
+$cv->recv;
 
-App::Environ->push_event( 'initialize', qw( foo bar ),
-  sub {
-    $cv->send();
-  }
-);
+$cv = AE::cv;
+App::Environ->push_event( 'reload', sub { $cv->send } );
+$cv->recv;
 
-$cv->recv();
-
-# Here doing something
-
-$cv = AE::cv();
-
-App::Environ->push_event( 'finalize',
-  sub {
-    $cv->send();
-  }
-);
-
-$cv->recv();
+$cv = AE::cv;
+App::Environ->push_event( 'finalize-r', sub { $cv->send } );
+$cv->recv;
