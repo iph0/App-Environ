@@ -6,7 +6,7 @@ use warnings;
 use App::Environ;
 use App::Environ::Config;
 use AnyEvent;
-use Data::Dumper;
+use Carp qw( croak );
 
 App::Environ::Config->register( qw( cat.json ) );
 
@@ -16,8 +16,20 @@ App::Environ->register( __PACKAGE__,
   'finalize:r' => sub { __PACKAGE__->_finalize(@_) },
 );
 
+my $INSTANCE;
+
+
+sub instance {
+  unless ( defined $INSTANCE ) {
+    croak __PACKAGE__ . ' must be initialized first';
+  }
+
+  return $INSTANCE;
+}
 
 sub _initialize {
+  my $class = shift;
+
   my $cb;
   if ( ref( $_[-1] ) eq 'CODE' ) {
     $cb = pop;
@@ -25,7 +37,11 @@ sub _initialize {
 
   my $cat_config = App::Environ::Config->instance->{'cat'};
 
-  print Dumper($cat_config);
+  $INSTANCE = {
+    config    => $cat_config,
+    init_args => [@_],
+  };
+
   print __PACKAGE__ . " initialized\n";
 
   if ( defined $cb ) {
@@ -41,6 +57,8 @@ sub _reload {
     $cb = pop;
   }
 
+  $INSTANCE->{config} = App::Environ::Config->instance->{'cat'};
+
   print __PACKAGE__ . " reloaded\n";
 
   if ( defined $cb ) {
@@ -50,12 +68,13 @@ sub _reload {
   return;
 }
 
-
 sub _finalize {
   my $cb;
   if ( ref( $_[-1] ) eq 'CODE' ) {
     $cb = pop;
   }
+
+  undef $INSTANCE;
 
   print __PACKAGE__ . " finalized\n";
 

@@ -6,7 +6,7 @@ use warnings;
 use App::Environ;
 use App::Environ::Config;
 use AnyEvent;
-use Data::Dumper;
+use Carp qw( croak );
 
 App::Environ::Config->register( qw( cow.yml ) );
 
@@ -16,7 +16,20 @@ App::Environ->register( __PACKAGE__,
   'finalize:r' => sub { __PACKAGE__->_finalize(@_) },
 );
 
+my $INSTANCE;
+
+
+sub instance {
+  unless ( defined $INSTANCE ) {
+    croak __PACKAGE__ . ' must be initialized first';
+  }
+
+  return $INSTANCE;
+}
+
 sub _initialize {
+  my $class = shift;
+
   my $cb;
   if ( ref( $_[-1] ) eq 'CODE' ) {
     $cb = pop;
@@ -24,7 +37,11 @@ sub _initialize {
 
   my $cow_config = App::Environ::Config->instance->{'cow'};
 
-  print Dumper($cow_config);
+  $INSTANCE = {
+    config    => $cow_config,
+    init_args => [@_],
+  };
+
   print __PACKAGE__ . " initialized\n";
 
   if ( defined $cb ) {
@@ -39,6 +56,8 @@ sub _reload {
   if ( ref( $_[-1] ) eq 'CODE' ) {
     $cb = pop;
   }
+
+  $INSTANCE->{config} = App::Environ::Config->instance->{'cow'};
 
   print __PACKAGE__ . " reloaded\n";
 
@@ -55,6 +74,8 @@ sub _finalize {
   if ( ref( $_[-1] ) eq 'CODE' ) {
     $cb = pop;
   }
+
+  undef $INSTANCE;
 
   print __PACKAGE__ . " finalized\n";
 
