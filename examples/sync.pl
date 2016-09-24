@@ -8,6 +8,7 @@ use lib './examples/lib';
 
 use FindBin;
 use App::Environ;
+use Data::Dumper;
 
 BEGIN {
   $ENV{APPCONF_DIRS} = "$FindBin::Bin/etc";
