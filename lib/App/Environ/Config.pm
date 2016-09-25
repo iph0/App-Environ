@@ -121,3 +121,34 @@ sub _load_config {
 }
 
 1;
+__END__
+=head1 NAME
+
+App::Environ::Config - Configuration files processor for App::Environ
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+In development. See examples.
+
+=head1 METHODS
+
+=head2 register( @config_sections )
+
+=head2 instance()
+
+=head1 AUTHOR
+
+Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2016, Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>.
+All rights reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+
+=cut

@@ -6,8 +6,9 @@ WriteMakefile(
   VERSION_FROM  => 'lib/App/Environ.pm',
   MIN_PERL_VERSION => '5.008000',
   PREREQ_PM => {
-    'Carp' => 0,
-    'Config::Processor' => 0,
+    'Config::Processor' => '0.10',
+    'AnyEvent'          => '6.01',
+    'Carp'              => '0',
   },
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => 6.64,

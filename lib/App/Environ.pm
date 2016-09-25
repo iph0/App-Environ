@@ -110,6 +110,12 @@ App::Environ - Simple environ for building complex applications
 
 In development. See examples.
 
+=head1 METHODS
+
+=head2 register( $class, \%handlers )
+
+=head2 push_event( $event, [ @args ] )
+
 =head1 AUTHOR
 
 Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>
