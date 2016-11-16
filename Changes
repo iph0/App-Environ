@@ -1,1 +1,4 @@
 Revision history for Perl extension App::Environ.
+
+0.02 Wed Nov 16 16:11:20 MSK 2016
+	- Initial release.
