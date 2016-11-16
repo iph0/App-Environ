@@ -18,7 +18,7 @@ use Cat;
 use Dog;
 use Cow;
 
-App::Environ->push_event( 'initialize', qw( foo bar ) );
+App::Environ->send_event( 'initialize', qw( foo bar ) );
 
 my $cat_inst = Cat->instance;
 my $dog_inst = Dog->instance;
@@ -28,6 +28,5 @@ print Dumper($cat_inst);
 print Dumper($dog_inst);
 print Dumper($cow_inst);
 
-App::Environ->push_event('reload');
-
-App::Environ->push_event('finalize:r');
+App::Environ->send_event('reload');
+App::Environ->send_event('finalize:r');

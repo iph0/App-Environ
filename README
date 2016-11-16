@@ -1,4 +1,4 @@
-App-Environ version 0.01
+App-Environ version 0.01_01
 ========================
 
 INSTALLATION
@@ -12,7 +12,9 @@ To install this module type the following:
 
 DESCRIPTION
 
-App::Environ is simple environ for building complex applications
+App::Environ is the simple environment to build applications using service
+locator pattern. Allows register different application components that provide
+common resources.
 
 AUTHOR
 

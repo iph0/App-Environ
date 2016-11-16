@@ -22,7 +22,7 @@ t_finalize();
 
 
 sub t_initialize {
-  App::Environ->push_event( 'initialize', 'arg1', 'arg2' );
+  App::Environ->send_event( 'initialize', 'arg1', 'arg2' );
 
   my $t_foo_inst = Foo->instance;
   my $t_bar_inst = Bar->instance;
@@ -49,7 +49,7 @@ sub t_initialize {
 }
 
 sub t_reload {
-  App::Environ->push_event('reload');
+  App::Environ->send_event('reload');
 
   my $t_foo_inst = Foo->instance;
   my $t_bar_inst = Bar->instance;
@@ -62,7 +62,7 @@ sub t_reload {
 
 sub t_unknown_event {
   lives_ok {
-    App::Environ->push_event('unknown');
+    App::Environ->send_event('unknown');
   }
   'unknown event';
 
@@ -70,7 +70,7 @@ sub t_unknown_event {
 }
 
 sub t_finalize {
-  App::Environ->push_event('finalize:r');
+  App::Environ->send_event('finalize:r');
 
   like(
     exception {

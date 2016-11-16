@@ -29,11 +29,7 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   my $cow_config = App::Environ::Config->instance->{'cow'};
 
@@ -52,10 +48,7 @@ sub _initialize {
 }
 
 sub _reload {
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   $INSTANCE->{config} = App::Environ::Config->instance->{'cow'};
 
@@ -70,10 +63,7 @@ sub _reload {
 
 
 sub _finalize {
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef $INSTANCE;
 

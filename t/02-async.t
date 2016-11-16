@@ -26,7 +26,7 @@ sub t_initialize {
     sub {
       my $cv = shift;
 
-      App::Environ->push_event('initialize', 'arg1', 'arg2',
+      App::Environ->send_event('initialize', 'arg1', 'arg2',
         sub {
           $cv->send;
         }
@@ -63,7 +63,7 @@ sub t_reload {
     sub {
       my $cv = shift;
 
-      App::Environ->push_event( 'reload',
+      App::Environ->send_event( 'reload',
         sub {
           $cv->send;
         }
@@ -85,7 +85,7 @@ sub t_finalize {
     sub {
       my $cv = shift;
 
-      App::Environ->push_event( 'finalize:r',
+      App::Environ->send_event( 'finalize:r',
         sub {
           $cv->send;
         }

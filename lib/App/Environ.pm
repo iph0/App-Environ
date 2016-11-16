@@ -46,7 +46,7 @@ sub register {
   return;
 }
 
-sub push_event {
+sub send_event {
   my $self_class = shift;
   my $event_name = shift;
 
@@ -95,26 +95,65 @@ sub _async_call_handler {
 
 1;
 __END__
+
 =head1 NAME
 
-App::Environ - Simple environ for building complex applications
+App::Environ - Simple environment to build applications using service locator
+pattern
 
 =head1 SYNOPSIS
+
   use App::Environ;
 
-  App::Environ->push_event( 'initialize', qw( foo bar ) );
+  # Register handlers in your class
 
-  App::Environ->push_event('finalize:r');
+  App::Environ->register( __PACKAGE__,
+    initialize => sub {
+      my $cb = pop if ref( $_[-1] ) eq 'CODE';
+      my @args = @_;
+
+      # handling...
+    },
+    reload       => sub { ... },
+    'finalize:r' => sub { ... },
+  );
+
+  # Send events from your application
+
+  # Synchronous interface
+  App::Environ->send_event( 'initialize', qw( foo bar ) );
+  App::Environ->send_event('reload');
+  App::Environ->send_event('finalize:r');
+
+  # Asynchronous interface
+  App::Environ->send_event( 'initialize', qw( foo bar ), sub { ... } );
+  App::Environ->send_event( 'reload', sub { ... } );
+  App::Environ->send_event( 'finalize:r', sub { ... } );
 
 =head1 DESCRIPTION
 
-In development. See examples.
+App::Environ is the simple environment to build applications using service
+locator pattern. Allows register different application components that provide
+common resources.
 
 =head1 METHODS
 
 =head2 register( $class, \%handlers )
 
-=head2 push_event( $event, [ @args ] )
+Registers handlers for specified events. When an event have been sent, event
+handlers will be processed in order in which they was registered. If you want
+that event handlers have been processed in reverse order, add postfix C<:r> to
+event name.
+
+=head2 send_event( $event [, @args ] [, $cb->() ] )
+
+Sends specified event. All handlers registered for this event will be processed.
+
+=head1 SEE ALSO
+
+L<App::Environ::Config>
+
+Also see examples from the package to better understand the concept.
 
 =head1 AUTHOR
 
@@ -127,6 +166,5 @@ All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
-
 
 =cut

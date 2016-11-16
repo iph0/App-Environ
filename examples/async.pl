@@ -21,7 +21,7 @@ use Cow;
 use AnyEvent;
 
 my $cv = AE::cv;
-App::Environ->push_event( 'initialize', qw( foo bar ), sub { $cv->send } );
+App::Environ->send_event( 'initialize', qw( foo bar ), sub { $cv->send } );
 $cv->recv;
 
 my $cat_inst = Cat->instance;
@@ -33,9 +33,9 @@ print Dumper($dog_inst);
 print Dumper($cow_inst);
 
 $cv = AE::cv;
-App::Environ->push_event( 'reload', sub { $cv->send } );
+App::Environ->send_event( 'reload', sub { $cv->send } );
 $cv->recv;
 
 $cv = AE::cv;
-App::Environ->push_event( 'finalize:r', sub { $cv->send } );
+App::Environ->send_event( 'finalize:r', sub { $cv->send } );
 $cv->recv;

@@ -16,7 +16,7 @@ BEGIN {
 };
 
 can_ok( $APPENV_CLASS, 'register' );
-can_ok( $APPENV_CLASS, 'push_event' );
+can_ok( $APPENV_CLASS, 'send_event' );
 
 can_ok( $APPCONF_CLASS, 'register' );
 can_ok( $APPCONF_CLASS, 'instance' );

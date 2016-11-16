@@ -34,9 +34,7 @@ sub register {
     push( @REGISTERED_SECTIONS, $config_section );
   }
 
-  unless ($NEED_INIT) {
-    $NEED_INIT = 1;
-  }
+  $NEED_INIT = 1;
 
   return;
 }
@@ -51,11 +49,7 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   if ($NEED_INIT) {
     $class->_load_config;
@@ -71,11 +65,7 @@ sub _initialize {
 
 sub _reload {
   my $class = shift;
-
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   $class->_load_config;
 
@@ -87,10 +77,7 @@ sub _reload {
 }
 
 sub _finalize {
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef @REGISTERED_SECTIONS;
   undef %SECTIONS_IDX;
@@ -128,15 +115,30 @@ App::Environ::Config - Configuration files processor for App::Environ
 
 =head1 SYNOPSIS
 
+  use App::Environ::Config;
+
+  App::Environ::Config->register( qw( foo.yml bar.json ) );
+
+  my $config = App::Environ::Config->instance;
+
 =head1 DESCRIPTION
 
-In development. See examples.
+App::Environ::Config is the configuration files processor for App::Environ.
+Allows get access to configuraton tree from different application components.
 
 =head1 METHODS
 
 =head2 register( @config_sections )
 
+Registers configuration sections.
+
 =head2 instance()
+
+Gets reference to configuration tree.
+
+=head1 SEE ALSO
+
+L<App::Environ>, L<Config::Processor>
 
 =head1 AUTHOR
 
@@ -149,6 +151,5 @@ All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
-
 
 =cut

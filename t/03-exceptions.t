@@ -41,7 +41,7 @@ sub t_repeat_registration {
 sub t_event_name_not_specified {
   like(
     exception {
-      App::Environ->push_event;
+      App::Environ->send_event;
     },
     qr/Event name must be specified/,
     'event name notspecified'
