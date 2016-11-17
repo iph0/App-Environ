@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03_01';
 
 use Carp qw( croak );
 
@@ -13,7 +13,7 @@ my %MODULES_IDX;
 
 
 sub register {
-  my $self_class   = shift;
+  my $class        = shift;
   my $module_class = shift;
   my %handlers     = @_;
 
@@ -47,7 +47,7 @@ sub register {
 }
 
 sub send_event {
-  my $self_class = shift;
+  my $class      = shift;
   my $event_name = shift;
 
   unless ( defined $event_name ) {
@@ -60,7 +60,7 @@ sub send_event {
 
   if ( ref( $_[-1] ) eq 'CODE' ) {
     my $cb = pop @_;
-    $self_class->_async_call_handler( \@handlers, [@_], $cb );
+    $class->_async_call_handler( \@handlers, [@_], $cb );
   }
   else {
     foreach my $handler (@handlers) {
@@ -71,8 +71,21 @@ sub send_event {
   return;
 }
 
+sub cleanup {
+  foreach my $module_class ( keys %MODULES_IDX ) {
+    if ( $module_class->can('cleanup') ) {
+      $module_class->cleanup;
+    }
+  }
+
+  undef %REGISTERED_EVENTS;
+  undef %MODULES_IDX;
+
+  return;
+}
+
 sub _async_call_handler {
-  my $self_class = shift;
+  my $class = shift;
   my $handlers   = shift;
   my $args       = shift;
   my $cb         = shift;
@@ -86,7 +99,7 @@ sub _async_call_handler {
 
   $handler->( @{$args},
     sub {
-      $self_class->_async_call_handler( $handlers, $args, $cb );
+      $class->_async_call_handler( $handlers, $args, $cb );
     }
   );
 

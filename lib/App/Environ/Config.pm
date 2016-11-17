@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03_01';
 
 use App::Environ;
 use Config::Processor;
@@ -14,7 +14,7 @@ use Carp qw( croak );
 my @REGISTERED_SECTIONS;
 my $CONFIG;
 my %SECTIONS_IDX;
-my $NEED_INIT = 0;
+my $NEED_INIT;
 
 
 App::Environ->register( __PACKAGE__,
@@ -47,13 +47,21 @@ sub instance {
   return $CONFIG;
 }
 
+sub cleanup {
+  undef @REGISTERED_SECTIONS;
+  undef %SECTIONS_IDX;
+  undef $CONFIG;
+
+  return;
+}
+
 sub _initialize {
   my $class = shift;
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   if ($NEED_INIT) {
     $class->_load_config;
-    $NEED_INIT = 0;
+    undef $NEED_INIT;
   }
 
   if ( defined $cb ) {
@@ -79,8 +87,6 @@ sub _reload {
 sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
-  undef @REGISTERED_SECTIONS;
-  undef %SECTIONS_IDX;
   undef $CONFIG;
 
   if ( defined $cb ) {
