@@ -136,11 +136,15 @@ Allows get access to configuraton tree from different application components.
 
 =head2 register( @config_sections )
 
-Registers configuration sections.
+Perform registration of configuration sections.
 
 =head2 instance()
 
 Gets reference to configuration tree.
+
+=head2 cleanup()
+
+Perform unregistration of all configuration sections.
 
 =head1 SEE ALSO
 
