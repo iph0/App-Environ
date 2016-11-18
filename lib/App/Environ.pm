@@ -153,14 +153,19 @@ common resources.
 
 =head2 register( $class, \%handlers )
 
-Registers handlers for specified events. When an event have been sent, event
-handlers will be processed in order in which they was registered. If you want
-that event handlers have been processed in reverse order, add postfix C<:r> to
-event name.
+Perform registration of handlers for specified events. When an event have been
+sent, event handlers will be processed in order in which they was registered.
+If you want that event handlers have been processed in reverse order, add
+postfix C<:r> to event name.
 
 =head2 send_event( $event [, @args ] [, $cb->() ] )
 
 Sends specified event. All handlers registered for this event will be processed.
+
+=head2 cleanup()
+
+Perform unregistration of all handlers. If registered module has method
+C<cleanup> it will be called first.
 
 =head1 SEE ALSO
 
