@@ -10,8 +10,6 @@ use FindBin;
 use App::Environ;
 use Data::Dumper;
 
-print Dumper(\%INC);
-
 BEGIN {
   $ENV{APPCONF_DIRS} = "$FindBin::Bin/etc";
 }
@@ -32,7 +30,3 @@ print Dumper($cow_inst);
 
 App::Environ->send_event('reload');
 App::Environ->send_event('finalize:r');
-
-END {
-  App::Environ->cleanup;
-}

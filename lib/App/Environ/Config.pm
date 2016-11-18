@@ -47,14 +47,6 @@ sub instance {
   return $CONFIG;
 }
 
-sub cleanup {
-  undef @REGISTERED_SECTIONS;
-  undef %SECTIONS_IDX;
-  undef $CONFIG;
-
-  return;
-}
-
 sub _initialize {
   my $class = shift;
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
@@ -87,6 +79,8 @@ sub _reload {
 sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
+  undef @REGISTERED_SECTIONS;
+  undef %SECTIONS_IDX;
   undef $CONFIG;
 
   if ( defined $cb ) {
@@ -141,10 +135,6 @@ Perform registration of configuration sections.
 =head2 instance()
 
 Gets reference to configuration tree.
-
-=head2 cleanup()
-
-Perform unregistration of all configuration sections.
 
 =head1 SEE ALSO
 

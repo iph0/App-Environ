@@ -39,7 +39,3 @@ $cv->recv;
 $cv = AE::cv;
 App::Environ->send_event( 'finalize:r', sub { $cv->send } );
 $cv->recv;
-
-END {
-  App::Environ->cleanup;
-}

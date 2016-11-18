@@ -6,10 +6,24 @@ use warnings;
 
 our $VERSION = '0.03_01';
 
+use AnyEvent;
 use Carp qw( croak );
 
 my %REGISTERED_EVENTS;
 my %MODULES_IDX;
+
+__PACKAGE__->register( __PACKAGE__,
+  'finalize:r' => sub {
+    my $cb = pop if ref( $_[-1] ) eq 'CODE';
+
+    undef %REGISTERED_EVENTS;
+    undef %MODULES_IDX;
+
+    if ( defined $cb ) {
+      AE::postpone { $cb->() };
+    }
+  }
+);
 
 
 sub register {
@@ -67,19 +81,6 @@ sub send_event {
       $handler->(@_);
     }
   }
-
-  return;
-}
-
-sub cleanup {
-  foreach my $module_class ( keys %MODULES_IDX ) {
-    if ( $module_class->can('cleanup') ) {
-      $module_class->cleanup;
-    }
-  }
-
-  undef %REGISTERED_EVENTS;
-  undef %MODULES_IDX;
 
   return;
 }
@@ -161,11 +162,6 @@ postfix C<:r> to event name.
 =head2 send_event( $event [, @args ] [, $cb->() ] )
 
 Sends specified event. All handlers registered for this event will be processed.
-
-=head2 cleanup()
-
-Perform unregistration of all handlers. If registered module has method
-C<cleanup> it will be called first.
 
 =head1 SEE ALSO
 
