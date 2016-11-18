@@ -41,9 +41,7 @@ sub register {
   my $events_idx = $MODULES_IDX{$module_class};
 
   while ( my ( $event_name, $handler ) = each %handlers ) {
-    if ( exists $events_idx->{$event_name} ) {
-      croak qq{"$event_name" handler for "$module_class" already registered};
-    }
+    next if exists $events_idx->{$event_name};
     $events_idx->{$event_name} = 1;
 
     unless ( exists $REGISTERED_EVENTS{$event_name} ) {
