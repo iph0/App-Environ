@@ -14,7 +14,7 @@ use Carp qw( croak );
 my @REGISTERED_SECTIONS;
 my $CONFIG;
 my %SECTIONS_IDX;
-my $NEED_INIT;
+my $NEED_LOAD_CONFIG;
 
 
 App::Environ->register( __PACKAGE__,
@@ -32,9 +32,11 @@ sub register {
     next if $SECTIONS_IDX{$config_section};
     $SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_SECTIONS, $config_section );
-  }
 
-  $NEED_INIT = 1;
+    unless ($NEED_LOAD_CONFIG) {
+      $NEED_LOAD_CONFIG = 1;
+    }
+  }
 
   return;
 }
@@ -51,9 +53,9 @@ sub _initialize {
   my $class = shift;
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
-  if ($NEED_INIT) {
+  if ($NEED_LOAD_CONFIG) {
     $class->_load_config;
-    undef $NEED_INIT;
+    undef $NEED_LOAD_CONFIG;
   }
 
   if ( defined $cb ) {
