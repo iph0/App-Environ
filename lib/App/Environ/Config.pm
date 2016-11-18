@@ -99,9 +99,15 @@ sub _load_config {
   }
 
   my $config_processor = Config::Processor->new(
-    dirs                  => \@config_dirs,
-    interpolate_variables => $ENV{APPCONF_INTERPOLATE_VARIABLES},
-    process_directives    => $ENV{APPCONF_PROCESS_DIRECTIVES},
+    dirs => \@config_dirs,
+
+    $ENV{APPCONF_INTERPOLATE_VARIABLES}
+        ? ( interpolate_variables => $ENV{APPCONF_INTERPOLATE_VARIABLES} )
+        : (),
+
+    $ENV{APPCONF_PROCESS_DIRECTIVES}
+        ? ( process_directives => $ENV{APPCONF_PROCESS_DIRECTIVES} )
+        : (),
   );
 
   $CONFIG = $config_processor->load(@REGISTERED_SECTIONS);
