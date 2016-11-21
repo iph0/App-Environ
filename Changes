@@ -1,4 +1,9 @@
 Revision history for Perl extension App::Environ.
 
+0.04 Mon Nov 21 14:30:20 MSK 2016
+  - Added "finalize:r" handler in App::Environ.
+  - Do not die if handler has already registered.
+  - Fixed handling of ENV variables in App::Environ::Config.
+
 0.02 Wed Nov 16 16:11:20 MSK 2016
 	- Initial release.

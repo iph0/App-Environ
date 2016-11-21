@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.03_01';
+our $VERSION = '0.04';
 
 use App::Environ;
 use Config::Processor;
@@ -102,12 +102,12 @@ sub _load_config {
     dirs => \@config_dirs,
 
     $ENV{APPCONF_INTERPOLATE_VARIABLES}
-        ? ( interpolate_variables => $ENV{APPCONF_INTERPOLATE_VARIABLES} )
-        : (),
+    ? ( interpolate_variables => $ENV{APPCONF_INTERPOLATE_VARIABLES} )
+    : (),
 
     $ENV{APPCONF_PROCESS_DIRECTIVES}
-        ? ( process_directives => $ENV{APPCONF_PROCESS_DIRECTIVES} )
-        : (),
+    ? ( process_directives => $ENV{APPCONF_PROCESS_DIRECTIVES} )
+    : (),
   );
 
   $CONFIG = $config_processor->load(@REGISTERED_SECTIONS);
