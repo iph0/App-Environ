@@ -29,7 +29,7 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
+  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
   my $cow_config = App::Environ::Config->instance->{'cow'};
 

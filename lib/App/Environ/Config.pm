@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 use App::Environ;
 use Config::Processor;
@@ -12,9 +12,9 @@ use AnyEvent;
 use Carp qw( croak );
 
 my @REGISTERED_SECTIONS;
-my $CONFIG;
 my %SECTIONS_IDX;
-my $NEED_LOAD_CONFIG;
+my $CONFIG;
+my $NEED_LOAD;
 
 
 App::Environ->register( __PACKAGE__,
@@ -28,14 +28,15 @@ sub register {
   my $class = shift;
   my @config_sections = @_;
 
+  my $length_before = scalar @REGISTERED_SECTIONS;
+
   foreach my $config_section (@config_sections) {
-    next if $SECTIONS_IDX{$config_section};
+    next if exists $SECTIONS_IDX{$config_section};
+
     $SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_SECTIONS, $config_section );
 
-    unless ($NEED_LOAD_CONFIG) {
-      $NEED_LOAD_CONFIG = 1;
-    }
+    $NEED_LOAD = 1;
   }
 
   return;
@@ -53,9 +54,9 @@ sub _initialize {
   my $class = shift;
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
-  if ($NEED_LOAD_CONFIG) {
-    $class->_load_config;
-    undef $NEED_LOAD_CONFIG;
+  if ($NEED_LOAD) {
+    $class->_load;
+    undef $NEED_LOAD;
   }
 
   if ( defined $cb ) {
@@ -67,9 +68,9 @@ sub _initialize {
 
 sub _reload {
   my $class = shift;
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
+  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  $class->_load_config;
+  $class->_load;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -81,8 +82,6 @@ sub _reload {
 sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
-  undef @REGISTERED_SECTIONS;
-  undef %SECTIONS_IDX;
   undef $CONFIG;
 
   if ( defined $cb ) {
@@ -92,7 +91,7 @@ sub _finalize {
   return;
 }
 
-sub _load_config {
+sub _load {
   my @config_dirs;
   if ( defined $ENV{APPCONF_DIRS} ) {
     @config_dirs = split /:/, $ENV{APPCONF_DIRS};
