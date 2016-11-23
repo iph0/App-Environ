@@ -28,12 +28,8 @@ sub instance {
 }
 
 sub _initialize {
-  my $class = shift;
-
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $class     = shift;
+  my $cb        = pop if ref( $_[-1] ) eq 'CODE';
 
   my $foo_config = App::Environ::Config->instance->{'foo'};
 
@@ -51,9 +47,19 @@ sub _initialize {
 }
 
 sub _reload {
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
+  my $class    = shift;
+  my $cb       = pop if ref( $_[-1] ) eq 'CODE';
+  my $need_err = shift;
+
+  if ($need_err) {
+    my $err = 'Some error.';
+
+    if ( defined $cb ) {
+      AE::postpone { $cb->($err) };
+      return;
+    }
+
+    die "$err\n";
   }
 
   $INSTANCE->{config} = App::Environ::Config->instance->{'foo'};
@@ -67,10 +73,7 @@ sub _reload {
 }
 
 sub _finalize {
-  my $cb;
-  if ( ref( $_[-1] ) eq 'CODE' ) {
-    $cb = pop;
-  }
+  my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef $INSTANCE;
 

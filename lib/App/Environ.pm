@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.06';
+our $VERSION = '0.08';
 
 use AnyEvent;
 use Carp qw( croak );
@@ -54,7 +54,13 @@ sub send_event {
     croak 'Event name must be specified';
   }
 
-  return unless exists $REGISTERED_HANDLERS{$event_name};
+  unless ( exists $REGISTERED_HANDLERS{$event_name} ) {
+    if ( defined $cb ) {
+      AE::postpone { $cb->() };
+    }
+
+    return;
+  }
 
   my @handlers = @{ $REGISTERED_HANDLERS{$event_name} };
 
@@ -80,6 +86,13 @@ sub _process_async {
 
   $handler->( @{$args},
     sub {
+      my $err = shift;
+
+      if ( defined $err ) {
+        $cb->($err);
+        return;
+      }
+
       if ( @{$handlers} ) {
         $class->_process_async( $handlers, $args, $cb );
         return;
@@ -104,27 +117,16 @@ pattern
 
   use App::Environ;
 
-  # Register handlers in your class
-
   App::Environ->register( __PACKAGE__,
-    initialize => sub {
-      my $cb = pop if ref( $_[-1] ) eq 'CODE';
-      my @args = @_;
-
-      # handling...
-    },
+    initialize   => sub { ... },
     reload       => sub { ... },
     'finalize:r' => sub { ... },
   );
 
-  # Send events from your application
-
-  # Synchronous interface
   App::Environ->send_event( 'initialize', qw( foo bar ) );
   App::Environ->send_event('reload');
   App::Environ->send_event('finalize:r');
 
-  # Asynchronous interface
   App::Environ->send_event( 'initialize', qw( foo bar ), sub { ... } );
   App::Environ->send_event( 'reload', sub { ... } );
   App::Environ->send_event( 'finalize:r', sub { ... } );
@@ -139,14 +141,51 @@ common resources.
 
 =head2 register( $class, \%handlers )
 
-Perform registration of handlers for specified events. When an event have been
-sent, event handlers will be processed in order in which they was registered.
-If you want that event handlers have been processed in reverse order, add
-postfix C<:r> to event name.
+The method registers handlers for specified events. When some event have been
+sent, corresponding to this event handlers will be processed in order in which
+they was registered. If you want that event handlers have been processed in
+reverse order, add postfix C<:r> to event name. When event handler is called,
+arguments that have been specified in C<send_event> method are passed to it.
+If in the last argument is passed the callback, the handler must be processed
+in asynchronous mode using available event loop. If some error occurred in
+asynchronous mode, the error message must be passed to the callback in the
+first argument.
 
-=head2 send_event( $event [, @args ] [, $cb->() ] )
+  App::Environ->register( __PACKAGE__,
+    initialize => sub {
+      my $cb   = pop if ref( $_[-1] ) eq 'CODE';
+      my @args = @_;
 
-Sends specified event. All handlers registered for this event will be processed.
+      if ( defined $cb ) {
+        # asynchronous handling...
+      }
+      else {
+        # synchronous handling...
+      }
+    },
+  );
+
+=head2 send_event( $event [, @args ] [, $cb->( [ $err ] ) ] )
+
+Sends specified event to App::Environ. All handlers registered for this event
+will be processed. Arguments specified in C<send_event> method will be passed
+to event handlers in the same order without modifications.
+
+  App::Environ->send_event( 'initialize', qw( foo bar ) );
+
+  App::Environ->send_event( 'initialize', qw( foo bar ),
+    sub {
+      my $err = shift;
+
+      if ( defined $err ) {
+        # error handling...
+
+        return;
+      }
+
+      # continue handling...
+    }
+  );
 
 =head1 SEE ALSO
 

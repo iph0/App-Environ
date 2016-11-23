@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.06';
+our $VERSION = '0.08';
 
 use App::Environ;
 use Config::Processor;
@@ -55,7 +55,16 @@ sub _initialize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   if ($NEED_LOAD) {
-    $class->_load;
+    eval { $class->_load };
+    if ($@) {
+      if ( defined $cb ) {
+        chomp $@;
+        AE::postpone { $cb->($@) };
+        return;
+      }
+      die $@;
+    }
+
     undef $NEED_LOAD;
   }
 
@@ -70,7 +79,15 @@ sub _reload {
   my $class = shift;
   my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  $class->_load;
+  eval { $class->_load };
+  if ($@) {
+    if ( defined $cb ) {
+      chomp $@;
+      AE::postpone { $cb->($@) };
+      return;
+    }
+    die $@;
+  }
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -122,9 +139,12 @@ App::Environ::Config - Configuration files processor for App::Environ
 
 =head1 SYNOPSIS
 
+  use App::Environ;
   use App::Environ::Config;
 
   App::Environ::Config->register( qw( foo.yml bar.json ) );
+
+  App::Environ->send_event('initialize');
 
   my $config = App::Environ::Config->instance;
 
@@ -133,11 +153,14 @@ App::Environ::Config - Configuration files processor for App::Environ
 App::Environ::Config is the configuration files processor for App::Environ.
 Allows get access to configuraton tree from different application components.
 
+The module registers in App::Environ three handlers for events: C<initialize>,
+C<reload> and C<finalize:r>.
+
 =head1 METHODS
 
 =head2 register( @config_sections )
 
-Perform registration of configuration sections.
+The method registers configuration sections.
 
 =head2 instance()
 

@@ -4,7 +4,7 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::Fatal qw( lives_ok exception );
 use App::Environ;
 
@@ -18,6 +18,7 @@ use Bar;
 t_initialize();
 t_reload();
 t_unknown_event();
+t_handling_error();
 t_finalize();
 
 
@@ -65,6 +66,16 @@ sub t_unknown_event {
     App::Environ->send_event('unknown');
   }
   'unknown event';
+
+  return;
+}
+
+sub t_handling_error {
+  eval {
+    App::Environ->send_event( 'reload', 1 );
+  };
+
+  is( $@, "Some error.\n", 'handling error' );
 
   return;
 }

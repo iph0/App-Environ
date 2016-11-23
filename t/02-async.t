@@ -4,7 +4,7 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 use Test::Fatal;
 use App::Environ;
 use AnyEvent;
@@ -18,6 +18,8 @@ use Bar;
 
 t_initialize();
 t_reload();
+t_unknown_event();
+t_handling_error();
 t_finalize();
 
 
@@ -76,6 +78,48 @@ sub t_reload {
 
   is( $t_foo_inst->{reload_cnt}, 1, 'reload; Foo' );
   is( $t_bar_inst->{reload_cnt}, 1, 'reload; Bar' );
+
+  return;
+}
+
+sub t_unknown_event {
+  my $t_flag;
+
+  ev_loop(
+    sub {
+      my $cv = shift;
+
+      App::Environ->send_event( 'unknown',
+        sub {
+          $t_flag = 1;
+          $cv->send;
+        }
+      );
+    }
+  );
+
+  is( $t_flag, 1, 'unknown event' );
+
+  return;
+}
+
+sub t_handling_error {
+  my $t_err;
+
+  ev_loop(
+    sub {
+      my $cv = shift;
+
+      App::Environ->send_event( 'reload', 1,
+        sub {
+          $t_err = shift;
+          $cv->send;
+        }
+      );
+    }
+  );
+
+  is( $t_err, 'Some error.', 'handling error' );
 
   return;
 }
