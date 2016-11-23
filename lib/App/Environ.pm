@@ -183,7 +183,7 @@ to event handlers in the same order without modifications.
         return;
       }
 
-      # continue handling...
+      # success handling...
     }
   );
 
