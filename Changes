@@ -1,5 +1,9 @@
 Revision history for Perl extension App::Environ.
 
+0.10 Fri Nov 25 12:03:05 MSK 2016
+  - Fixes in POD.
+  - Light refactoring.
+
 0.08 Wed Nov 23 17:17:05 MSK 2016
   - FEATURE: Added ability to handle errors in asynchronous mode.
   - BUGFIX: Fixed handling of unknown events in asynchronous mode.
