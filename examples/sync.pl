@@ -19,10 +19,6 @@ use Dog;
 use Cow;
 
 App::Environ->send_event( 'initialize', qw( foo bar ) );
-App::Environ->send_event( 'initialize', qw( foo bar ) );
-App::Environ->send_event( 'initialize', qw( foo bar ) );
-App::Environ->send_event( 'initialize', qw( foo bar ) );
-App::Environ->send_event( 'initialize', qw( foo bar ) );
 
 my $cat_inst = Cat->instance;
 my $dog_inst = Dog->instance;

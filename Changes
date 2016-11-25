@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Environ.
 
+0.12 Fri Nov 25 12:09:30 MSK 2016
+  - Removed garbage from example.
+
 0.10 Fri Nov 25 12:03:05 MSK 2016
   - Fixes in POD.
   - Light refactoring.
