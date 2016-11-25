@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.08';
+our $VERSION = '0.10';
 
 use App::Environ;
 use Config::Processor;
@@ -14,8 +14,7 @@ use Carp qw( croak );
 my @REGISTERED_SECTIONS;
 my %SECTIONS_IDX;
 my $CONFIG;
-my $NEED_LOAD;
-
+my $NEED_INIT;
 
 App::Environ->register( __PACKAGE__,
   initialize   => sub { __PACKAGE__->_initialize(@_) },
@@ -35,8 +34,7 @@ sub register {
 
     $SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_SECTIONS, $config_section );
-
-    $NEED_LOAD = 1;
+    $NEED_INIT = 1;
   }
 
   return;
@@ -52,21 +50,28 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
+  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  if ($NEED_LOAD) {
-    eval { $class->_load };
-    if ($@) {
-      if ( defined $cb ) {
-        chomp $@;
-        AE::postpone { $cb->($@) };
-        return;
-      }
-      die $@;
+  unless ($NEED_INIT) {
+    if ( defined $cb ) {
+      AE::postpone { $cb->() };
     }
-
-    undef $NEED_LOAD;
+    return;
   }
+
+  eval {
+    $class->_load
+  };
+  if ($@) {
+    if ( defined $cb ) {
+      chomp $@;
+      AE::postpone { $cb->($@) };
+      return;
+    }
+    die $@;
+  }
+
+  undef $NEED_INIT;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -79,7 +84,9 @@ sub _reload {
   my $class = shift;
   my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  eval { $class->_load };
+  eval {
+    $class->_load
+  };
   if ($@) {
     if ( defined $cb ) {
       chomp $@;
@@ -100,6 +107,7 @@ sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef $CONFIG;
+  undef $NEED_INIT;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -113,19 +121,14 @@ sub _load {
   if ( defined $ENV{APPCONF_DIRS} ) {
     @config_dirs = split /:/, $ENV{APPCONF_DIRS};
   }
+  my $interpolate_vars   = $ENV{APPCONF_INTERPOLATE_VARIABLES};
+  my $process_directives = $ENV{APPCONF_PROCESS_DIRECTIVES};
 
   my $config_processor = Config::Processor->new(
     dirs => \@config_dirs,
-
-    $ENV{APPCONF_INTERPOLATE_VARIABLES}
-    ? ( interpolate_variables => $ENV{APPCONF_INTERPOLATE_VARIABLES} )
-    : (),
-
-    $ENV{APPCONF_PROCESS_DIRECTIVES}
-    ? ( process_directives => $ENV{APPCONF_PROCESS_DIRECTIVES} )
-    : (),
+    $interpolate_vars ? ( interpolate_variables => $interpolate_vars ) : (),
+    $process_directives ? ( process_directives => $process_directives ) : (),
   );
-
   $CONFIG = $config_processor->load(@REGISTERED_SECTIONS);
 
   return;
@@ -153,7 +156,7 @@ App::Environ::Config - Configuration files processor for App::Environ
 App::Environ::Config is the configuration files processor for App::Environ.
 Allows get access to configuraton tree from different application components.
 
-The module registers in App::Environ three handlers for events: C<initialize>,
+The module registers in App::Environ three handlers for events C<initialize>,
 C<reload> and C<finalize:r>.
 
 =head1 METHODS
