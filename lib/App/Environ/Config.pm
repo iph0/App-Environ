@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.13_01';
+our $VERSION = '0.14';
 
 use App::Environ;
 use Config::Processor;
@@ -14,7 +14,7 @@ use Carp qw( croak );
 my @REGISTERED_SECTIONS;
 my %SECTIONS_IDX;
 my $CONFIG;
-my $NEED_INIT;
+my $NEED_CONFIG_INIT;
 
 App::Environ->register( __PACKAGE__,
   initialize   => sub { __PACKAGE__->_initialize(@_) },
@@ -34,7 +34,7 @@ sub register {
 
     $SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_SECTIONS, $config_section );
-    $NEED_INIT = 1;
+    $NEED_CONFIG_INIT = 1;
   }
 
   return;
@@ -52,7 +52,7 @@ sub _initialize {
   my $class = shift;
   my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  unless ($NEED_INIT) {
+  unless ($NEED_CONFIG_INIT) {
     if ( defined $cb ) {
       AE::postpone { $cb->() };
     }
@@ -60,7 +60,7 @@ sub _initialize {
   }
 
   eval {
-    $class->_load
+    $class->_load;
   };
   if ($@) {
     my $err = $@;
@@ -68,13 +68,14 @@ sub _initialize {
     if ( defined $cb ) {
       chomp $err;
       AE::postpone { $cb->($err) };
+
       return;
     }
 
     die $err;
   }
 
-  undef $NEED_INIT;
+  undef $NEED_CONFIG_INIT;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -88,7 +89,7 @@ sub _reload {
   my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
   eval {
-    $class->_load
+    $class->_load;
   };
   if ($@) {
     my $err = $@;
@@ -96,6 +97,7 @@ sub _reload {
     if ( defined $cb ) {
       chomp $err;
       AE::postpone { $cb->($err) };
+
       return;
     }
 
@@ -113,7 +115,7 @@ sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef $CONFIG;
-  undef $NEED_INIT;
+  undef $NEED_CONFIG_INIT;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };
@@ -135,6 +137,7 @@ sub _load {
     $interpolate_vars ? ( interpolate_variables => $interpolate_vars ) : (),
     $process_directives ? ( process_directives => $process_directives ) : (),
   );
+
   $CONFIG = $config_processor->load(@REGISTERED_SECTIONS);
 
   return;

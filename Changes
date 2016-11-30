@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Environ.
 
+0.14 Wed Nov 30 14:59:00 MSK 2016
+  - BUGFIX: Fixed error handling for asynchronous mode.
+
 0.12 Fri Nov 25 12:09:30 MSK 2016
   - Removed garbage from example.
 
