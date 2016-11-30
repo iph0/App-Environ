@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13_01';
 
 use App::Environ;
 use Config::Processor;
@@ -63,12 +63,15 @@ sub _initialize {
     $class->_load
   };
   if ($@) {
+    my $err = $@;
+
     if ( defined $cb ) {
-      chomp $@;
-      AE::postpone { $cb->($@) };
+      chomp $err;
+      AE::postpone { $cb->($err) };
       return;
     }
-    die $@;
+
+    die $err;
   }
 
   undef $NEED_INIT;
@@ -88,12 +91,15 @@ sub _reload {
     $class->_load
   };
   if ($@) {
+    my $err = $@;
+
     if ( defined $cb ) {
-      chomp $@;
-      AE::postpone { $cb->($@) };
+      chomp $err;
+      AE::postpone { $cb->($err) };
       return;
     }
-    die $@;
+
+    die $err;
   }
 
   if ( defined $cb ) {
