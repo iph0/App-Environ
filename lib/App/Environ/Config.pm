@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.14';
+our $VERSION = '0.16';
 
 use App::Environ;
 use Config::Processor;
@@ -14,7 +14,7 @@ use Carp qw( croak );
 my @REGISTERED_SECTIONS;
 my %SECTIONS_IDX;
 my $CONFIG;
-my $NEED_CONFIG_INIT;
+my $NEED_CONFIG_INIT = 1;
 
 App::Environ->register( __PACKAGE__,
   initialize   => sub { __PACKAGE__->_initialize(@_) },
@@ -27,13 +27,12 @@ sub register {
   my $class = shift;
   my @config_sections = @_;
 
-  my $length_before = scalar @REGISTERED_SECTIONS;
-
   foreach my $config_section (@config_sections) {
     next if exists $SECTIONS_IDX{$config_section};
 
     $SECTIONS_IDX{$config_section} = 1;
     push( @REGISTERED_SECTIONS, $config_section );
+
     $NEED_CONFIG_INIT = 1;
   }
 
@@ -115,7 +114,7 @@ sub _finalize {
   my $cb = pop if ref( $_[-1] ) eq 'CODE';
 
   undef $CONFIG;
-  undef $NEED_CONFIG_INIT;
+  $NEED_CONFIG_INIT = 1;
 
   if ( defined $cb ) {
     AE::postpone { $cb->() };

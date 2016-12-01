@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.14';
+our $VERSION = '0.16';
 
 use AnyEvent;
 use Carp qw( croak );

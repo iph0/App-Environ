@@ -1,5 +1,9 @@
 Revision history for Perl extension App::Environ.
 
+0.16 Thu Dec 1 17:34:05 MSK 2016
+  - BUGFIX: Fixed issue with repeatable initialization/finalization in
+    App::Environ::Config.
+
 0.14 Wed Nov 30 17:07:55 MSK 2016
   - BUGFIX: Fixed error handling for asynchronous mode.
 
