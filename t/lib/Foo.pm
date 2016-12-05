@@ -5,15 +5,15 @@ use warnings;
 
 use App::Environ;
 use App::Environ::Config;
-use AnyEvent;
 use Carp qw( croak );
 
 App::Environ::Config->register( qw( foo.json ) );
 
 App::Environ->register( __PACKAGE__,
-  initialize   => sub { __PACKAGE__->_initialize(@_) },
-  reload       => sub { __PACKAGE__->_reload(@_) },
-  'finalize:r' => sub { __PACKAGE__->_finalize(@_) },
+  initialize     => sub { __PACKAGE__->_initialize(@_) },
+  reload         => sub { __PACKAGE__->_reload(@_) },
+  'wait_async:r' => sub { __PACKAGE__->_wait_async(@_) },
+  'finalize:r'   => sub { __PACKAGE__->_finalize(@_) },
 );
 
 my $INSTANCE;
@@ -28,59 +28,49 @@ sub instance {
 }
 
 sub _initialize {
-  my $class     = shift;
-  my $cb        = pop if ref( $_[-1] ) eq 'CODE';
+  my $class = shift;
+  my @args  = @_;
 
   my $foo_config = App::Environ::Config->instance->{'foo'};
 
   $INSTANCE = {
-    config     => $foo_config,
-    init_args  => [@_],
-    reload_cnt => 0,
+    config    => $foo_config,
+    init_args => \@args,
+    reloads   => 0,
   };
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
 
   return;
 }
 
 sub _reload {
-  my $class    = shift;
-  my $cb       = pop if ref( $_[-1] ) eq 'CODE';
-  my $need_err = shift;
+  my $class     = shift;
+  my $raise_err = shift;
 
-  if ($need_err) {
-    my $err = 'Some error.';
-
-    if ( defined $cb ) {
-      AE::postpone { $cb->($err) };
-      return;
-    }
-
-    die "$err\n";
-  }
+  die "Some error.\n" if ($raise_err);
 
   $INSTANCE->{config} = App::Environ::Config->instance->{'foo'};
-  $INSTANCE->{reload_cnt}++;
+  $INSTANCE->{reloads}++;
 
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
+  return;
+}
+
+sub _wait_async {
+  my $class     = shift;
+  my $raise_err = shift;
+  my $cb        = shift;
+
+  if ($raise_err) {
+    $cb->('Some error.');
+    return;
   }
+
+  $cb->();
 
   return;
 }
 
 sub _finalize {
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
-
   undef $INSTANCE;
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
-
   return;
 }
 

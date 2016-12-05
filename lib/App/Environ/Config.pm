@@ -4,15 +4,14 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17_01';
 
 use App::Environ;
 use Config::Processor;
-use AnyEvent;
 use Carp qw( croak );
 
-my @REGISTERED_SECTIONS;
-my %SECTIONS_IDX;
+my @REGD_CONFIG_SECTIONS;
+my %CONFIG_SECTIONS_IDX;
 my $CONFIG;
 my $NEED_CONFIG_INIT = 1;
 
@@ -28,10 +27,10 @@ sub register {
   my @config_sections = @_;
 
   foreach my $config_section (@config_sections) {
-    next if exists $SECTIONS_IDX{$config_section};
+    next if exists $CONFIG_SECTIONS_IDX{$config_section};
 
-    $SECTIONS_IDX{$config_section} = 1;
-    push( @REGISTERED_SECTIONS, $config_section );
+    $CONFIG_SECTIONS_IDX{$config_section} = 1;
+    push( @REGD_CONFIG_SECTIONS, $config_section );
 
     $NEED_CONFIG_INIT = 1;
   }
@@ -49,76 +48,26 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  unless ($NEED_CONFIG_INIT) {
-    if ( defined $cb ) {
-      AE::postpone { $cb->() };
-    }
-    return;
-  }
+  return unless $NEED_CONFIG_INIT;
 
-  eval {
-    $class->_load;
-  };
-  if ($@) {
-    my $err = $@;
-
-    if ( defined $cb ) {
-      chomp $err;
-      AE::postpone { $cb->($err) };
-
-      return;
-    }
-
-    die $err;
-  }
-
+  $class->_load;
   undef $NEED_CONFIG_INIT;
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
 
   return;
 }
 
 sub _reload {
   my $class = shift;
-  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
-  eval {
-    $class->_load;
-  };
-  if ($@) {
-    my $err = $@;
-
-    if ( defined $cb ) {
-      chomp $err;
-      AE::postpone { $cb->($err) };
-
-      return;
-    }
-
-    die $err;
-  }
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
+  $class->_load;
 
   return;
 }
 
 sub _finalize {
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
-
   undef $CONFIG;
   $NEED_CONFIG_INIT = 1;
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
 
   return;
 }
@@ -137,7 +86,7 @@ sub _load {
     $process_directives ? ( process_directives => $process_directives ) : (),
   );
 
-  $CONFIG = $config_processor->load(@REGISTERED_SECTIONS);
+  $CONFIG = $config_processor->load(@REGD_CONFIG_SECTIONS);
 
   return;
 }

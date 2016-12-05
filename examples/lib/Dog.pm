@@ -5,7 +5,6 @@ use warnings;
 
 use App::Environ;
 use App::Environ::Config;
-use AnyEvent;
 use Carp qw( croak );
 
 App::Environ::Config->register( qw( dog.yml ) );
@@ -29,7 +28,6 @@ sub instance {
 
 sub _initialize {
   my $class = shift;
-  my $cb    = pop if ref( $_[-1] ) eq 'CODE';
 
   my $dog_config = App::Environ::Config->instance->{'dog'};
 
@@ -40,38 +38,21 @@ sub _initialize {
 
   print __PACKAGE__ . " initialized\n";
 
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
-
   return;
 }
 
 sub _reload {
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
-
   $INSTANCE->{config} = App::Environ::Config->instance->{'dog'};
 
   print __PACKAGE__ . " reloaded\n";
 
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
-
   return;
 }
 
-
 sub _finalize {
-  my $cb = pop if ref( $_[-1] ) eq 'CODE';
-
   undef $INSTANCE;
 
   print __PACKAGE__ . " finalized\n";
-
-  if ( defined $cb ) {
-    AE::postpone { $cb->() };
-  }
 
   return;
 }

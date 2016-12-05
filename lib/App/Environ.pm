@@ -4,12 +4,11 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17_01';
 
-use AnyEvent;
 use Carp qw( croak );
 
-my %REGISTERED_HANDLERS;
+my %REGD_HANDLERS;
 my %MODULES_IDX;
 
 
@@ -31,14 +30,14 @@ sub register {
     next if exists $events_idx->{$event_name};
 
     $events_idx->{$event_name} = 1;
-    unless ( exists $REGISTERED_HANDLERS{$event_name} ) {
-      $REGISTERED_HANDLERS{$event_name} = [];
+    unless ( exists $REGD_HANDLERS{$event_name} ) {
+      $REGD_HANDLERS{$event_name} = [];
     }
     if ( $event_name =~ m/\:r$/ ) {
-      unshift( @{ $REGISTERED_HANDLERS{$event_name} }, $handler );
+      unshift( @{ $REGD_HANDLERS{$event_name} }, $handler );
     }
     else {
-      push( @{ $REGISTERED_HANDLERS{$event_name} }, $handler );
+      push( @{ $REGD_HANDLERS{$event_name} }, $handler );
     }
   }
 
@@ -49,28 +48,25 @@ sub send_event {
   my $class      = shift;
   my $event_name = shift;
   my $cb         = pop if ref( $_[-1] ) eq 'CODE';
+  my @args       = @_;
 
   unless ( defined $event_name ) {
     croak 'Event name must be specified';
   }
 
-  unless ( exists $REGISTERED_HANDLERS{$event_name} ) {
-    if ( defined $cb ) {
-      AE::postpone { $cb->() };
-    }
-
+  unless ( exists $REGD_HANDLERS{$event_name} ) {
+    $cb->() if defined $cb;
     return;
   }
 
-  my @handlers = @{ $REGISTERED_HANDLERS{$event_name} };
-
+  my @handlers = @{ $REGD_HANDLERS{$event_name} };
   if ( defined $cb ) {
-    $class->_process_async( \@handlers, [@_], $cb );
-    return;
+    $class->_process_async( \@handlers, \@args, $cb );
   }
-
-  foreach my $handler (@handlers) {
-    $handler->(@_);
+  else {
+    foreach my $handler (@handlers) {
+      $handler->(@args);
+    }
   }
 
   return;
@@ -125,11 +121,8 @@ pattern
 
   App::Environ->send_event( 'initialize', qw( foo bar ) );
   App::Environ->send_event('reload');
+  App::Environ->send_event( 'wait_async:r', sub {...} );
   App::Environ->send_event('finalize:r');
-
-  App::Environ->send_event( 'initialize', qw( foo bar ), sub { ... } );
-  App::Environ->send_event( 'reload', sub { ... } );
-  App::Environ->send_event( 'finalize:r', sub { ... } );
 
 =head1 DESCRIPTION
 
@@ -142,26 +135,19 @@ common resources.
 =head2 register( $class, \%handlers )
 
 The method registers handlers for specified events. When some event have been
-sent, corresponding to this event handlers will be processed in order in which
-they was registered. If you want that event handlers have been processed in
-reverse order, add postfix C<:r> to event name. When event handler is called,
-arguments that have been specified in C<send_event> method are passed to it.
-If in the last argument is passed the callback, the handler must be processed
-in asynchronous mode using available event loop. If some error occurred in
-asynchronous mode, the error message must be passed to the callback in the
-first argument.
+sent, event handlers will be processed in order in which they was registered.
+If you want that event handlers have been processed in reverse order, add
+postfix C<:r> to event name. When event handler is called, all arguments that
+have been specified in C<send_event> method are passed to it. If the callback
+is passed in the last argument, the handler must call it when processing will
+be done. If the handler was called with callback and some error occurred, the
+error message must be passed to the callback in the first argument.
 
   App::Environ->register( __PACKAGE__,
     initialize => sub {
-      my $cb   = pop if ref( $_[-1] ) eq 'CODE';
       my @args = @_;
 
-      if ( defined $cb ) {
-        # asynchronous handling...
-      }
-      else {
-        # synchronous handling...
-      }
+      # handling...
     },
   );
 
@@ -169,11 +155,12 @@ first argument.
 
 Sends specified event to App::Environ. All handlers registered for this event
 will be processed. Arguments specified in C<send_event> method will be passed
-to event handlers in the same order without modifications.
+to event handlers. If the callback is passed in the last argument, event
+handlers will be processed in asynchronous mode.
 
   App::Environ->send_event( 'initialize', qw( foo bar ) );
 
-  App::Environ->send_event( 'initialize', qw( foo bar ),
+  App::Environ->send_event( 'wait_async:r'
     sub {
       my $err = shift;
 

@@ -7,7 +7,6 @@ WriteMakefile(
   MIN_PERL_VERSION => '5.008000',
   PREREQ_PM => {
     'Config::Processor' => '0.10',
-    'AnyEvent'          => '6.01',
     'Carp'              => '0',
   },
   CONFIGURE_REQUIRES => {
