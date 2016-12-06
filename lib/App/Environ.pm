@@ -135,13 +135,13 @@ common resources.
 =head2 register( $class, \%handlers )
 
 The method registers handlers for specified events. When some event have been
-sent, event handlers will be processed in order in which they was registered.
-If you want that event handlers have been processed in reverse order, add
-postfix C<:r> to event name. When event handler is called, all arguments that
-have been specified in C<send_event> method are passed to it. If the callback
-is passed in the last argument, the handler must call it when processing will
-be done. If the handler was called with callback and some error occurred, the
-error message must be passed to the callback in the first argument.
+sent, registered event handlers will be processed in order in which they was
+registered. If you want that event handlers have been processed in reverse
+order, add postfix C<:r> to event name. All arguments that have been specified
+in C<send_event> method (see below) are passed to called event handler. If in
+the last argument is passed the callback, the handler must call it when
+processing will be done. If the handler was called with callback and some error
+occurred, the callback mus be called with error message in first argument.
 
   App::Environ->register( __PACKAGE__,
     initialize => sub {
