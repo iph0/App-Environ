@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.17_01';
+our $VERSION = '0.17_02';
 
 use Carp qw( croak );
 
@@ -121,7 +121,7 @@ pattern
 
   App::Environ->send_event( 'initialize', qw( foo bar ) );
   App::Environ->send_event('reload');
-  App::Environ->send_event( 'wait_async:r', sub {...} );
+  App::Environ->send_event( 'pre_finalize:r', sub {...} );
   App::Environ->send_event('finalize:r');
 
 =head1 DESCRIPTION
@@ -141,7 +141,7 @@ order, add postfix C<:r> to event name. All arguments that have been specified
 in C<send_event> method (see below) are passed to called event handler. If in
 the last argument is passed the callback, the handler must call it when
 processing will be done. If the handler was called with callback and some error
-occurred, the callback mus be called with error message in first argument.
+occurred, the callback must be called with error message in first argument.
 
   App::Environ->register( __PACKAGE__,
     initialize => sub {
@@ -160,7 +160,7 @@ handlers will be processed in asynchronous mode.
 
   App::Environ->send_event( 'initialize', qw( foo bar ) );
 
-  App::Environ->send_event( 'wait_async:r'
+  App::Environ->send_event( 'pre_finalize:r'
     sub {
       my $err = shift;
 

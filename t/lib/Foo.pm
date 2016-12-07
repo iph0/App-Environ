@@ -10,10 +10,10 @@ use Carp qw( croak );
 App::Environ::Config->register( qw( foo.json ) );
 
 App::Environ->register( __PACKAGE__,
-  initialize     => sub { __PACKAGE__->_initialize(@_) },
-  reload         => sub { __PACKAGE__->_reload(@_) },
-  'wait_async:r' => sub { __PACKAGE__->_wait_async(@_) },
-  'finalize:r'   => sub { __PACKAGE__->_finalize(@_) },
+  initialize       => sub { __PACKAGE__->_initialize(@_) },
+  reload           => sub { __PACKAGE__->_reload(@_) },
+  'pre_finalize:r' => sub { __PACKAGE__->_pre_finalize(@_) },
+  'finalize:r'     => sub { __PACKAGE__->_finalize(@_) },
 );
 
 my $INSTANCE;
@@ -54,7 +54,7 @@ sub _reload {
   return;
 }
 
-sub _wait_async {
+sub _pre_finalize {
   my $class     = shift;
   my $raise_err = shift;
   my $cb        = shift;

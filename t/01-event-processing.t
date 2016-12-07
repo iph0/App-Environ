@@ -65,7 +65,7 @@ sub t_reload {
 sub t_async_call {
   my $t_done;
 
-  App::Environ->send_event( 'wait_async:r', undef, sub { $t_done = 1 } );
+  App::Environ->send_event( 'pre_finalize:r', undef, sub { $t_done = 1 } );
 
   is( $t_done, 1, 'asynchronous event' );
 
@@ -88,7 +88,8 @@ sub t_handling_error {
   is( $t_err_sync, "Some error.\n", 'handling error; synchronous' );
 
   my $t_err_async;
-  App::Environ->send_event( 'wait_async:r', 1, sub { $t_err_async = shift } );
+  App::Environ->send_event( 'pre_finalize:r', 1,
+      sub { $t_err_async = shift } );
 
   is( $t_err_async, "Some error.", 'handling error; asynchronous' );
 
