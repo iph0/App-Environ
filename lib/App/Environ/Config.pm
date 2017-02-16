@@ -4,7 +4,7 @@ use 5.008000;
 use strict;
 use warnings;
 
-our $VERSION = '0.18';
+our $VERSION = '0.20';
 
 use App::Environ;
 use Config::Processor;
@@ -79,11 +79,13 @@ sub _load {
   }
   my $interpolate_vars   = $ENV{APPCONF_INTERPOLATE_VARIABLES};
   my $process_directives = $ENV{APPCONF_PROCESS_DIRECTIVES};
+  my $export_env         = $ENV{APPCONF_EXPORT_ENV};
 
   my $config_processor = Config::Processor->new(
     dirs => \@config_dirs,
     $interpolate_vars ? ( interpolate_variables => $interpolate_vars ) : (),
     $process_directives ? ( process_directives => $process_directives ) : (),
+    $export_env         ? ( export_env         => $export_env )         : (),
   );
 
   $CONFIG = $config_processor->load(@REGD_CONFIG_SECTIONS);
@@ -111,10 +113,10 @@ App::Environ::Config - Configuration files processor for App::Environ
 =head1 DESCRIPTION
 
 App::Environ::Config is the configuration files processor for App::Environ.
-Allows get access to configuraton tree from different application components.
+Allows get access to configuration tree from different application components.
 
-The module registers in App::Environ three handlers for events C<initialize>,
-C<reload> and C<finalize:r>.
+The module registers in App::Environ three handlers for following events:
+C<initialize>, C<reload> and C<finalize:r>.
 
 =head1 METHODS
 
@@ -126,6 +128,34 @@ The method registers configuration sections.
 
 Gets reference to configuration tree.
 
+=head1 ENVIRONMENT VARIABLES
+
+You can control configuration file processing using environment variables.
+
+=head2 APPCONF_DIRS
+
+List of directories separated by ":" (colon), in which configuration processor
+will search files. If the variable not specified, current directory will be
+used.
+
+=head2 APPCONF_INTERPOLATE_VARIABLES
+
+Enables or disables variable interpolation in configurations files.
+Enabled by default.
+
+=head2 APPCONF_PROCESS_DIRECTIVES
+
+Enables or disables directive processing in configuration files.
+Enabled by default.
+
+=head2 APPCONF_EXPORT_ENV
+
+Enables or disables environment variables exporting to configuration tree.
+If enabled, environment variables can be accessed by the key C<ENV> from the
+configuration tree and can be interpolated into other configuration parameters.
+
+Disabled by default.
+
 =head1 SEE ALSO
 
 L<App::Environ>, L<Config::Processor>
@@ -136,7 +166,7 @@ Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2016, Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>.
+Copyright (c) 2016-2017, Eugene Ponizovsky, E<lt>ponizovsky@gmail.comE<gt>.
 All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it under
