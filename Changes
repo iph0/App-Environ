@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Environ.
 
+0.22 Sat Apr 1 16:00:22 MSK 2017
+  - README.pod replaced by README.md.
+
 0.20 Thu Feb 16 14:51:05 MSK 2017
   - Added handling of environment variable APPCONF_EXPORT_ENV.
   - Added description for all environment variables used by
